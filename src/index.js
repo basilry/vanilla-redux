@@ -1,43 +1,158 @@
-// 리덕스를 리팩토링한 방식
+// 2강 단계 코드들
 import {createStore} from "redux";
 
-const add = document.getElementById('add');
-const minus = document.getElementById('minus');
-const number = document.querySelector('span');
+const form = document.querySelector("form");
+const input = document.querySelector("input");
+const ul = document.querySelector("ul")
 
-number.innerText = 0;
 
-const Add = "Add"
-const Minus = "Minus"
+const ADD_TODO = "ADD_TODO"
+const DELETE_TODO = "DELETE_TODO"
 
-const countModifier = (count = 0, action) => {
-  switch(action.type) {
-    case Add:
-      return count + 1;
-    case Minus:
-      return count - 1;
+const addToDo = (text) => {
+  return {
+    type: ADD_TODO, 
+    text
+  }
+}
+
+const deleteToDo = id => {
+  return {
+    type: DELETE_TODO,
+    id
+  }
+}
+
+const reducer = (state = [], action) => {
+  switch(action.type)  {
+    case ADD_TODO:
+      const newToDoObj = {text: action.text, id: Date.now()};
+      return [newToDoObj, ...state];
+    case DELETE_TODO:
+      const cleaned = state.filter(toDo => toDo.id !== action.id);
+      return cleaned;
     default:
-      return count;
+      return state;
   }
 };
 
-const onChange = () => {
-  number.innerText = countStore.getState();
+const store = createStore(reducer);
+
+store.subscribe(() => console.log(store.getState()));
+
+const dispatchAddToDo = text => {
+  store.dispatch(addToDo(text));
 }
 
-countStore.subscribe(onChange)
-
-const countStore = createStore(countModifier);
-
-const handleAdd = () => {
-  countStore.dispatch({type: Add})
-}
-const handleMinus = () => {
-  countStore.dispatch({type: Minus})
+const dispatchDeleteToDo = e => {
+  const id = parseInt(e.target.parentNode.id);
+  store.dispatch(deleteToDo(id))
 }
 
-add.addEventListener("click", handleAdd );
-minus.addEventListener("click", handleMinus);
+const paintToDos = () => {
+  const toDos = store.getState();
+  ul.innerHTML = ''
+  toDos.forEach(toDo => {
+    const li = document.createElement('li');
+    const btn = document.createElement('button');
+    btn.innerText = "DEL"
+    btn.addEventListener('click', dispatchDeleteToDo)
+    li.id = toDo.id;
+    li.innerText = toDo.text;
+    li.appendChild(btn)
+    ul.appendChild(li);
+  })
+}
+
+store.subscribe(paintToDos)
+
+const onSubmit = e => {
+  e.preventDefault();
+  const toDo = input.value;
+  input.value = "";
+  dispatchAddToDo(toDo);
+}
+
+form.addEventListener("submit", onSubmit)
+
+
+// 리덕스 쓰기 전 기존 코드
+// const form = document.querySelector("form");
+// const input = document.querySelector("input");
+// const ul = document.querySelector("ul")
+
+// const createTodo = toDo => {
+//   const li = document.createElement("li");
+//   li.innerText = toDo;
+//   ul.appendChild(li);
+// }
+
+// const onSubmit = e => {
+//   e.preventDefault();
+//   const toDo = input.value;
+//   input.value = "";
+//   createTodo(toDo);
+// }
+
+// form.addEventListener("submit", onSubmit)
+
+
+
+
+
+
+// 아래쪽은 0~1강 단계 코드들
+
+// 아래 코드들의 html파일 코드
+// <body>
+// <button id="add">Add</button>
+// <span></span>
+// <button id="minus">Minus</button>
+// </body>
+
+
+
+
+// 밑의 리덕스 코드를 리팩토링한 방식
+// import {createStore} from "redux";
+
+// const add = document.getElementById('add');
+// const minus = document.getElementById('minus');
+// const number = document.querySelector('span');
+
+// number.innerText = 0;
+
+// const Add = "Add"
+// const Minus = "Minus"
+
+// const countModifier = (count = 0, action) => {
+//   switch(action.type) {
+//     case Add:
+//       return count + 1;
+//     case Minus:
+//       return count - 1;
+//     default:
+//       return count;
+//   }
+// };
+
+// const onChange = () => {
+//   number.innerText = countStore.getState();
+// }
+
+// countStore.subscribe(onChange)
+
+// const countStore = createStore(countModifier);
+
+// const handleAdd = () => {
+//   countStore.dispatch({type: Add})
+// }
+// const handleMinus = () => {
+//   countStore.dispatch({type: Minus})
+// }
+
+// add.addEventListener("click", handleAdd );
+// minus.addEventListener("click", handleMinus);
 
 
 
